@@ -1,0 +1,67 @@
+# LP de rinoplastia — Dr. Sidney Colares
+
+Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Colares, com identidade própria em preto, off-white e dourado. A estrutura persuasiva da página de referência foi preservada sem copiar sua marca, seus textos ou seus ativos.
+
+## O que está implementado
+
+- Hero em vídeo com autoridade, CTA e controle acessível de pausa.
+- Carrossel contínuo com seis casos e alternativa manual no mobile.
+- Depoimento em vídeo, bloco de experiência, biografia, credenciais e tecnologia.
+- CTA final com formulário acessível em quatro etapas e atalho para WhatsApp.
+- Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.
+- Eventos no `dataLayer`, sem nome, telefone ou e-mail: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
+- Política de privacidade em formato de minuta.
+- Layout sem overflow validado em 360, 390, 768, 1024 e 1440 px.
+
+## Executar localmente
+
+Requer Node.js 18 ou superior.
+
+```bash
+npm install
+npm run dev
+```
+
+Acesse `http://127.0.0.1:4173`.
+
+Para executar a suíte automatizada:
+
+```bash
+npm test
+```
+
+## Publicação no Cloudflare Pages
+
+O deploy direto utiliza somente `index.html`, `privacidade.html`, `styles.css`, `app.js`, `config.js`, `_headers` e a pasta `assets`. O cabeçalho `X-Robots-Tag: noindex, nofollow` permanece ativo enquanto houver pendências profissionais, jurídicas e de autorização de imagem.
+
+- Projeto: `dr-sidney-colares`
+- Produção: <https://dr-sidney-colares.pages.dev/>
+- Branch de produção: `main`
+- Método: Direct Upload pelo Wrangler
+
+## Configuração
+
+Edite `config.js`:
+
+```js
+window.LP_CONFIG = {
+  whatsappNumber: "5594991360408",
+  gtmId: "",
+};
+```
+
+O formulário não grava dados em banco nesta versão: depois da validação, ele abre uma conversa no WhatsApp com os dados preenchidos. Se a operação precisar de CRM, webhook, e-mail ou prontuário, essa integração deve ser definida antes da publicação.
+
+## Arquivos principais
+
+- `index.html`: conteúdo semântico, seções, formulário e metadados.
+- `styles.css`: design system, animações e responsividade.
+- `app.js`: interações, validação, UTMs, WhatsApp e tracking.
+- `config.js`: número de WhatsApp e container GTM.
+- `privacidade.html`: minuta de política de privacidade.
+- `PENDENCIAS_PUBLICACAO.md`: decisões e materiais que ainda exigem validação.
+- `tests/smoke.spec.js`: testes funcionais e responsivos.
+
+## Status
+
+A página está pronta como protótipo funcional e base de produção. A publicação definitiva depende dos itens documentados em `PENDENCIAS_PUBLICACAO.md`, especialmente originais das mídias, autorizações dos pacientes, confirmação dos registros profissionais, dados de privacidade e destino dos leads.
