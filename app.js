@@ -303,7 +303,7 @@
       .map((key) => `${key}: ${values[key]}`)
       .join(" | ");
     const message = [
-      "Olá! Vim pela landing page do Dr. Sidney Colares e gostaria de solicitar uma avaliação.",
+      "Olá! Acessei a página de rinoplastia do Dr. Sidney Colares e gostaria de falar com a equipe.",
       "",
       `Nome: ${values.name}`,
       `WhatsApp informado: ${values.phone}`,
@@ -323,7 +323,7 @@
     window.setTimeout(() => {
       form.removeAttribute("aria-busy");
       submitButton.disabled = false;
-      formStatus.textContent = "Atendimento aberto no WhatsApp.";
+      formStatus.textContent = "Conversa aberta no WhatsApp.";
     }, 700);
   });
 })();
