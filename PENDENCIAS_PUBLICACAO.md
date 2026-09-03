@@ -36,7 +36,7 @@ Nenhum ativo do site do Dr. Jaziel foi incorporado à implementação.
 
 ## 4. Conversão e integrações — bloqueante para operação completa
 
-- Definir se o WhatsApp é o destino definitivo ou se o lead também deve ser salvo em CRM/webhook.
+- O lead já é salvo no Cloudflare D1 antes da abertura do WhatsApp. Definir se também deve ser sincronizado com CRM, webhook ou outra ferramenta de atendimento.
 - Se houver integração, documentar endpoint, autenticação, tratamento de falhas, retenção e responsáveis.
 - Confirmar mensagem inicial, horário de atendimento e SLA da equipe.
 - Configurar um único container GTM em `config.js`; o valor está vazio por segurança.

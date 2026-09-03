@@ -20,6 +20,11 @@ test("renders the complete landing page without horizontal overflow", async ({ p
 });
 
 test("opens, validates and advances the accessible lead form", async ({ page }) => {
+  let storedLead;
+  await page.route("**/api/leads", async (route) => {
+    storedLead = route.request().postDataJSON();
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true, leadId: "test-lead" }) });
+  });
   await page.addInitScript(() => {
     window.open = (url) => {
       window.__openedWhatsAppUrl = url;
@@ -51,12 +56,45 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   const submit = page.getByRole("button", { name: "Continuar no WhatsApp" });
   await expect(submit).toBeVisible();
   await submit.click();
+  await expect.poll(() => storedLead?.name).toBe("Paciente Teste");
+  expect(storedLead).toMatchObject({
+    phone: "(94) 99136-0408",
+    email: "paciente@example.com",
+    interest: "Quero agendar uma avaliação de rinoplastia",
+    privacy_consent: true,
+    utm_source: "ig",
+    utm_campaign: "smoke",
+  });
   await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
   await expect.poll(() => page.evaluate(() => window.dataLayer.some((item) => item.event === "generate_lead"))).toBe(true);
 
   await page.getByRole("button", { name: "Fechar formulário" }).click();
   await expect(dialog).toBeHidden();
   await expect(cta).toBeFocused();
+});
+
+test("does not open WhatsApp when lead storage fails", async ({ page }) => {
+  await page.route("**/api/leads", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
+  await page.addInitScript(() => {
+    window.open = (url) => {
+      window.__openedWhatsAppUrl = url;
+      return {};
+    };
+  });
+  await page.goto("/");
+  await page.locator(".js-open-form").first().click();
+  await page.locator("#lead-name").fill("Paciente Teste");
+  await page.locator(".form-next").click();
+  await page.locator("#lead-phone").fill("94991360408");
+  await page.locator(".form-next").click();
+  await page.locator("#lead-email").fill("paciente@example.com");
+  await page.locator(".form-next").click();
+  await page.getByLabel("Quero tirar dúvidas sobre rinoplastia").check();
+  await page.locator("[name='privacy_consent']").check();
+  await page.locator(".form-submit").click();
+
+  await expect(page.locator(".form-status")).toContainText("Tente novamente");
+  await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toBe("");
 });
 
 test("supports carousel pause, hero pause and credentials accordion", async ({ page }) => {

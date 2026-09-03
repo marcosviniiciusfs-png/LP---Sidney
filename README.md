@@ -8,6 +8,7 @@ Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Col
 - Carrossel contínuo com seis casos e alternativa manual no mobile.
 - Depoimento em vídeo, bloco de experiência, biografia, credenciais e tecnologia.
 - CTA final com formulário acessível em quatro etapas e atalho para WhatsApp.
+- Registro do lead em Cloudflare D1 antes do encaminhamento ao WhatsApp.
 - Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.
 - Eventos no `dataLayer`, sem nome, telefone ou e-mail: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
 - Política de privacidade em formato de minuta.
@@ -50,7 +51,9 @@ window.LP_CONFIG = {
 };
 ```
 
-O formulário não grava dados em banco nesta versão: depois da validação, ele abre uma conversa no WhatsApp com os dados preenchidos. Se a operação precisar de CRM, webhook, e-mail ou prontuário, essa integração deve ser definida antes da publicação.
+Depois da validação, o formulário envia o lead para a função `/api/leads`, que grava os dados no Cloudflare D1. Somente após a confirmação do banco a página abre a conversa no WhatsApp. Dessa forma, o contato permanece registrado mesmo quando a mensagem não é enviada no aplicativo.
+
+O banco usa o binding `LEADS_DB`, configurado em `wrangler.jsonc`. O esquema fica em `migrations/0001_create_leads.sql`.
 
 ## Arquivos principais
 
@@ -58,6 +61,8 @@ O formulário não grava dados em banco nesta versão: depois da validação, el
 - `styles.css`: design system, animações e responsividade.
 - `app.js`: interações, validação, UTMs, WhatsApp e tracking.
 - `config.js`: número de WhatsApp e container GTM.
+- `functions/api/leads.js`: validação e gravação de leads no D1.
+- `migrations/`: estrutura versionada do banco de leads.
 - `privacidade.html`: minuta de política de privacidade.
 - `PENDENCIAS_PUBLICACAO.md`: decisões e materiais que ainda exigem validação.
 - `tests/smoke.spec.js`: testes funcionais e responsivos.

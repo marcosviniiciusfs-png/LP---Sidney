@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dr-sidney-colares",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-09-03",
+  "d1_databases": [
+    {
+      "binding": "LEADS_DB",
+      "database_name": "dr-sidney-leads",
+      "database_id": "824a02f3-9b05-40ce-8c5f-6d9686243110",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

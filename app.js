@@ -289,13 +289,13 @@
     else phoneInput.value = digits.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
   });
 
-  form?.addEventListener("submit", (event) => {
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!validateCurrentStep()) return;
 
     submitButton.disabled = true;
     form.setAttribute("aria-busy", "true");
-    formStatus.textContent = "Abrindo o atendimento seguro no WhatsApp…";
+    formStatus.textContent = "Registrando seus dados…";
 
     const values = Object.fromEntries(new FormData(form));
     const attribution = utmKeys
@@ -314,16 +314,33 @@
       .filter(Boolean)
       .join("\n");
 
-    track("generate_lead", { form: "evaluation", destination: "whatsapp" });
-    track("lead_handoff_whatsapp", { form: "evaluation", step_count: steps.length });
-    const destination = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    const newWindow = window.open(destination, "_blank", "noopener,noreferrer");
-    if (!newWindow) window.location.href = destination;
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          privacy_consent: values.privacy_consent === "on",
+          source_url: window.location.href,
+        }),
+      });
 
-    window.setTimeout(() => {
+      if (!response.ok) throw new Error(`Lead API returned ${response.status}`);
+
+      track("generate_lead", { form: "evaluation", destination: "database" });
+      track("lead_handoff_whatsapp", { form: "evaluation", step_count: steps.length });
+      formStatus.textContent = "Dados registrados. Abrindo o WhatsApp…";
+
+      const destination = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      const newWindow = window.open(destination, "_blank", "noopener,noreferrer");
+      if (!newWindow) window.location.href = destination;
+    } catch (error) {
+      console.error("Não foi possível registrar o lead.", error);
+      formStatus.textContent = "Não foi possível registrar seus dados. Tente novamente.";
+      track("lead_storage_error", { form: "evaluation" });
+    } finally {
       form.removeAttribute("aria-busy");
       submitButton.disabled = false;
-      formStatus.textContent = "Conversa aberta no WhatsApp.";
-    }, 700);
+    }
   });
 })();

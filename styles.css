@@ -1438,6 +1438,14 @@ p {
   cursor: pointer;
 }
 
+.form-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
 .form-status {
   min-height: 20px;
   margin: 12px 0 0;
