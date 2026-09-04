@@ -1,6 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
 test("renders the complete landing page without horizontal overflow", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("meta_ads_consent_v1", "rejected"));
   await page.goto("/?utm_source=ig&utm_medium=social&utm_content=qa");
   await expect(page).toHaveTitle(/Sidney Colares/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Rinoplastia");
@@ -20,12 +21,14 @@ test("renders the complete landing page without horizontal overflow", async ({ p
 });
 
 test("opens, validates and advances the accessible lead form", async ({ page }) => {
+  await page.route("https://connect.facebook.net/**", (route) => route.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
   let storedLead;
   await page.route("**/api/leads", async (route) => {
     storedLead = route.request().postDataJSON();
     await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true, leadId: "test-lead" }) });
   });
   await page.addInitScript(() => {
+    localStorage.setItem("meta_ads_consent_v1", "accepted");
     window.open = (url) => {
       window.__openedWhatsAppUrl = url;
       return {};
@@ -67,6 +70,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   });
   await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
   await expect.poll(() => page.evaluate(() => window.dataLayer.some((item) => item.event === "generate_lead"))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "track" && args[1] === "Lead"))).toBe(true);
 
   await page.getByRole("button", { name: "Fechar formulário" }).click();
   await expect(dialog).toBeHidden();
@@ -76,6 +80,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
 test("does not open WhatsApp when lead storage fails", async ({ page }) => {
   await page.route("**/api/leads", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
   await page.addInitScript(() => {
+    localStorage.setItem("meta_ads_consent_v1", "rejected");
     window.open = (url) => {
       window.__openedWhatsAppUrl = url;
       return {};
@@ -97,7 +102,27 @@ test("does not open WhatsApp when lead storage fails", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toBe("");
 });
 
+test("loads Meta Pixel only after advertising consent", async ({ page }) => {
+  await page.route("https://connect.facebook.net/**", (route) => route.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
+  await page.goto("/");
+
+  const banner = page.locator("#cookie-consent");
+  await expect(banner).toBeVisible();
+  await expect(page.locator('script[src*="connect.facebook.net"]')).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Aceitar" }).click();
+
+  await expect(banner).toBeHidden();
+  await expect(page.locator('script[src="https://connect.facebook.net/en_US/fbevents.js"]')).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("meta_ads_consent_v1"))).toBe("accepted");
+  await expect.poll(() =>
+    page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "init" && args[1] === "2258593511572731")),
+  ).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "track" && args[1] === "PageView"))).toBe(true);
+});
+
 test("supports carousel pause, hero pause and credentials accordion", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("meta_ads_consent_v1", "rejected"));
   await page.goto("/");
   const heroPause = page.locator('[data-media-toggle="hero"]');
   await heroPause.click();

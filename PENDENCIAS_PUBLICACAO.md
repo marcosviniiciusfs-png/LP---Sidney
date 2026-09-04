@@ -40,14 +40,14 @@ Nenhum ativo do site do Dr. Jaziel foi incorporado à implementação.
 - Se houver integração, documentar endpoint, autenticação, tratamento de falhas, retenção e responsáveis.
 - Confirmar mensagem inicial, horário de atendimento e SLA da equipe.
 - Configurar um único container GTM em `config.js`; o valor está vazio por segurança.
-- Configurar GA4/Google Ads/Meta/TikTok somente com IDs próprios e após implementar gestão válida de consentimento para tecnologias não essenciais.
+- O Pixel da Meta `2258593511572731` está configurado com consentimento prévio. Configurar GA4, Google Ads ou TikTok somente com IDs próprios e usando a mesma regra de consentimento para tecnologias não essenciais.
 - Preservar a regra de não enviar dados pessoais ao `dataLayer`.
 
 ## 5. Privacidade e publicação técnica — bloqueante
 
 - Revisar juridicamente `privacidade.html` e preencher nome/razão social do controlador, CNPJ/CPF quando cabível, endereço, canal do titular e encarregado.
 - Definir base legal, prazo de retenção, operadores e procedimento de atendimento aos direitos do titular.
-- Adicionar banner/plataforma de consentimento antes de ativar tags publicitárias ou cookies não essenciais.
+- Validar juridicamente o texto e o comportamento do aviso de consentimento já implementado antes do início das campanhas.
 - Substituir fontes do Google por arquivos locais se a política de privacidade adotada assim exigir.
 - Definir domínio final e então adicionar `canonical`, `og:url`, `og:image`, sitemap, robots e imagens sociais.
 - Substituir os posters derivados dos arquivos comprimidos, otimizar os originais e validar desempenho no ambiente de hospedagem.

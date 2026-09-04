@@ -10,6 +10,7 @@ Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Col
 - Logo oficial do Dr. Sidney aplicada no cabeçalho, formulário, apresentação profissional e rodapé.
 - CTA final com formulário acessível em quatro etapas e atalho para WhatsApp.
 - Registro do lead em Cloudflare D1 antes do encaminhamento ao WhatsApp.
+- Pixel da Meta com consentimento prévio, evento `PageView` e evento `Lead` após a gravação no D1.
 - Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.
 - Eventos no `dataLayer`, sem nome, telefone ou e-mail: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
 - Política de privacidade em formato de minuta.
@@ -49,6 +50,7 @@ Edite `config.js`:
 window.LP_CONFIG = {
   whatsappNumber: "5594991360408",
   gtmId: "",
+  metaPixelId: "2258593511572731",
 };
 ```
 
