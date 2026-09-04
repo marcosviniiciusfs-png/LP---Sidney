@@ -54,7 +54,7 @@ window.LP_CONFIG = {
 };
 ```
 
-Depois da validação, o formulário envia o lead para a função `/api/leads`, que grava os dados no Cloudflare D1. Somente após a confirmação do banco a página abre a conversa no WhatsApp. Dessa forma, o contato permanece registrado mesmo quando a mensagem não é enviada no aplicativo.
+Depois da validação, o formulário abre a conversa no WhatsApp imediatamente e, em paralelo, envia o lead para a função `/api/leads` com uma requisição persistente. A função grava os dados no Cloudflare D1 e os encaminha à planilha, sem fazer o visitante esperar por essas integrações.
 
 O banco usa o binding `LEADS_DB`, configurado em `wrangler.jsonc`. O esquema fica em `migrations/0001_create_leads.sql`.
 

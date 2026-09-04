@@ -308,7 +308,7 @@
 
     submitButton.disabled = true;
     form.setAttribute("aria-busy", "true");
-    formStatus.textContent = "Registrando seus dados…";
+    formStatus.textContent = "Abrindo o WhatsApp…";
 
     const values = Object.fromEntries(new FormData(form));
     const attribution = utmKeys
@@ -327,19 +327,27 @@
       .filter(Boolean)
       .join("\n");
 
+    const destination = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    const newWindow = window.open(destination, "_blank", "noopener,noreferrer");
+
+    const leadRequest = fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        ...values,
+        privacy_consent: values.privacy_consent === "on",
+        meta_consent: true,
+        fbp: readCookie("_fbp"),
+        fbc: getFbc(),
+        source_url: window.location.href,
+      }),
+    });
+
+    if (!newWindow) window.location.href = destination;
+
     try {
-      const response = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...values,
-          privacy_consent: values.privacy_consent === "on",
-          meta_consent: true,
-          fbp: readCookie("_fbp"),
-          fbc: getFbc(),
-          source_url: window.location.href,
-        }),
-      });
+      const response = await leadRequest;
 
       if (!response.ok) throw new Error(`Lead API returned ${response.status}`);
       const result = await response.json();
@@ -348,11 +356,7 @@
       track("generate_lead", { form: "evaluation", destination: "database" });
       window.fbq?.("track", "Lead", { content_name: "Avaliação de rinoplastia" }, { eventID: result.eventId });
       track("lead_handoff_whatsapp", { form: "evaluation", step_count: steps.length });
-      formStatus.textContent = "Dados registrados. Abrindo o WhatsApp…";
-
-      const destination = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-      const newWindow = window.open(destination, "_blank", "noopener,noreferrer");
-      if (!newWindow) window.location.href = destination;
+      formStatus.textContent = "Dados registrados. O WhatsApp foi aberto.";
     } catch (error) {
       console.error("Não foi possível registrar o lead.", error);
       formStatus.textContent = "Não foi possível registrar seus dados. Tente novamente.";

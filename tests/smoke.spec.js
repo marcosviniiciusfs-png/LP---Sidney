@@ -23,8 +23,11 @@ test("renders the complete landing page without horizontal overflow", async ({ p
 test("opens, validates and advances the accessible lead form", async ({ page }) => {
   await page.route("https://connect.facebook.net/**", (route) => route.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
   let storedLead;
+  let releaseLeadResponse;
+  const leadResponseGate = new Promise((resolve) => (releaseLeadResponse = resolve));
   await page.route("**/api/leads", async (route) => {
     storedLead = route.request().postDataJSON();
+    await leadResponseGate;
     await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true, leadId: "test-lead", eventId: "lead_test-lead" }) });
   });
   await page.addInitScript(() => {
@@ -62,7 +65,9 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   expect(await submit.textContent()).not.toContain("WhatsApp");
   expect(storedLead).toBeUndefined();
   await submit.click();
+  await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
   await expect.poll(() => storedLead?.name).toBe("Paciente Teste");
+  releaseLeadResponse();
   expect(storedLead).toMatchObject({
     phone: "(94) 99136-0408",
     city: "Marabá",
@@ -72,7 +77,6 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
     utm_campaign: "smoke",
     meta_consent: true,
   });
-  await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
   await expect.poll(() => page.evaluate(() => window.dataLayer.some((item) => item.event === "generate_lead"))).toBe(true);
   await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "track" && args[1] === "Lead"))).toBe(true);
   await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[1] === "Lead" && args[3]?.eventID === "lead_test-lead"))).toBe(true);
@@ -82,7 +86,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   await expect(cta).toBeFocused();
 });
 
-test("does not open WhatsApp when lead storage fails", async ({ page }) => {
+test("keeps WhatsApp independent when lead storage fails", async ({ page }) => {
   await page.route("**/api/leads", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
   await page.addInitScript(() => {
     localStorage.setItem("meta_ads_consent_v1", "rejected");
@@ -104,7 +108,7 @@ test("does not open WhatsApp when lead storage fails", async ({ page }) => {
   await page.locator(".form-submit").click();
 
   await expect(page.locator(".form-status")).toContainText("Tente novamente");
-  await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toBe("");
+  await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
 });
 
 test("loads Meta Pixel and PageView immediately", async ({ page }) => {
