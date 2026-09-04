@@ -25,7 +25,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   let storedLead;
   await page.route("**/api/leads", async (route) => {
     storedLead = route.request().postDataJSON();
-    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true, leadId: "test-lead" }) });
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ok: true, leadId: "test-lead", eventId: "lead_test-lead" }) });
   });
   await page.addInitScript(() => {
     localStorage.setItem("meta_ads_consent_v1", "accepted");
@@ -67,10 +67,12 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
     privacy_consent: true,
     utm_source: "ig",
     utm_campaign: "smoke",
+    meta_consent: true,
   });
   await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toContain("https://wa.me/5594991360408");
   await expect.poll(() => page.evaluate(() => window.dataLayer.some((item) => item.event === "generate_lead"))).toBe(true);
   await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "track" && args[1] === "Lead"))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.fbq?.queue?.some((args) => args[1] === "Lead" && args[3]?.eventID === "lead_test-lead"))).toBe(true);
 
   await page.getByRole("button", { name: "Fechar formulário" }).click();
   await expect(dialog).toBeHidden();

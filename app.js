@@ -63,6 +63,19 @@
     } catch {}
   };
 
+  const readCookie = (name) => {
+    const prefix = `${name}=`;
+    const item = document.cookie.split("; ").find((cookie) => cookie.startsWith(prefix));
+    return item ? decodeURIComponent(item.slice(prefix.length)) : "";
+  };
+
+  const getFbc = () => {
+    const cookie = readCookie("_fbc");
+    if (cookie) return cookie;
+    const fbclid = new URLSearchParams(window.location.search).get("fbclid");
+    return fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : "";
+  };
+
   const savedMetaConsent = readMetaConsent();
   if (savedMetaConsent === "accepted") loadMetaPixel();
   else if (!savedMetaConsent && consentBanner) consentBanner.hidden = false;
@@ -380,14 +393,19 @@
         body: JSON.stringify({
           ...values,
           privacy_consent: values.privacy_consent === "on",
+          meta_consent: readMetaConsent() === "accepted",
+          fbp: readCookie("_fbp"),
+          fbc: getFbc(),
           source_url: window.location.href,
         }),
       });
 
       if (!response.ok) throw new Error(`Lead API returned ${response.status}`);
+      const result = await response.json();
+      if (!result.eventId) throw new Error("Lead API did not return an event ID");
 
       track("generate_lead", { form: "evaluation", destination: "database" });
-      window.fbq?.("track", "Lead", { content_name: "Avaliação de rinoplastia" });
+      window.fbq?.("track", "Lead", { content_name: "Avaliação de rinoplastia" }, { eventID: result.eventId });
       track("lead_handoff_whatsapp", { form: "evaluation", step_count: steps.length });
       formStatus.textContent = "Dados registrados. Abrindo o WhatsApp…";
 

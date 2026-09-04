@@ -9,7 +9,70 @@ const json = (body, status = 200) =>
 
 const clean = (value, maxLength) => String(value ?? "").trim().slice(0, maxLength);
 
-export const onRequestPost = async ({ request, env }) => {
+const normalize = (value) => clean(value, 254).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+const sha256 = async (value) => {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const normalizePhone = (value) => {
+  const digits = String(value).replace(/\D/g, "");
+  return digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+};
+
+const sendMetaLead = async ({ env, request, lead, eventId, fbp, fbc }) => {
+  if (!env.META_CAPI_ACCESS_TOKEN || !env.META_PIXEL_ID) throw new Error("meta_capi_not_configured");
+
+  const nameParts = normalize(lead.name).split(/\s+/).filter(Boolean);
+  const firstName = nameParts.shift() || "";
+  const lastName = nameParts.join(" ");
+  const userData = {
+    em: [await sha256(normalize(lead.email))],
+    ph: [await sha256(normalizePhone(lead.phone))],
+    fn: [await sha256(firstName)],
+    client_ip_address: request.headers.get("CF-Connecting-IP") || undefined,
+    client_user_agent: request.headers.get("User-Agent") || undefined,
+    fbp: clean(fbp, 255) || undefined,
+    fbc: clean(fbc, 255) || undefined,
+  };
+  if (lastName) userData.ln = [await sha256(lastName)];
+
+  const graphVersion = /^v\d+\.\d+$/.test(env.META_GRAPH_API_VERSION || "") ? env.META_GRAPH_API_VERSION : "v25.0";
+  const response = await fetch(`https://graph.facebook.com/${graphVersion}/${env.META_PIXEL_ID}/events`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.META_CAPI_ACCESS_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      data: [{
+        event_name: "Lead",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        event_source_url: lead.sourceUrl || request.headers.get("Referer") || undefined,
+        action_source: "website",
+        user_data: userData,
+        custom_data: { content_name: "Avaliação de rinoplastia", content_category: "Rinoplastia" },
+      }],
+    }),
+  });
+  if (!response.ok) throw new Error(`meta_capi_http_${response.status}`);
+};
+
+const finishMetaDelivery = async (args) => {
+  let status = "sent";
+  try {
+    await sendMetaLead(args);
+  } catch (error) {
+    status = "failed";
+    console.error("meta_capi_delivery_failed", error instanceof Error ? error.message : "unknown_error");
+  }
+  try {
+    await args.env.LEADS_DB.prepare("UPDATE leads SET meta_capi_status = ? WHERE id = ?").bind(status, args.lead.id).run();
+  } catch {
+    console.error("meta_capi_status_update_failed");
+  }
+};
+
+export const onRequestPost = async ({ request, env, waitUntil }) => {
   if (!request.headers.get("content-type")?.includes("application/json")) {
     return json({ ok: false, error: "invalid_content_type" }, 415);
   }
@@ -37,7 +100,9 @@ export const onRequestPost = async ({ request, env }) => {
     utmContent: clean(body.utm_content, 200),
     utmTerm: clean(body.utm_term, 200),
     sourceUrl: clean(body.source_url, 500),
+    metaConsent: body.meta_consent === true,
   };
+  const eventId = `lead_${lead.id}`;
 
   const phoneDigits = lead.phone.replace(/\D/g, "");
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email);
@@ -50,8 +115,9 @@ export const onRequestPost = async ({ request, env }) => {
     await env.LEADS_DB.prepare(
       `INSERT INTO leads (
         id, name, phone, email, interest, privacy_consent,
-        utm_source, utm_medium, utm_campaign, utm_content, utm_term, source_url
-      ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)`,
+        utm_source, utm_medium, utm_campaign, utm_content, utm_term, source_url,
+        meta_event_id, meta_consent, meta_capi_status
+      ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         lead.id,
@@ -65,10 +131,17 @@ export const onRequestPost = async ({ request, env }) => {
         lead.utmContent || null,
         lead.utmTerm || null,
         lead.sourceUrl || null,
+        eventId,
+        lead.metaConsent ? 1 : 0,
+        lead.metaConsent ? "pending" : "skipped",
       )
       .run();
 
-    return json({ ok: true, leadId: lead.id }, 201);
+    if (lead.metaConsent) {
+      waitUntil(finishMetaDelivery({ env, request, lead, eventId, fbp: body.fbp, fbc: body.fbc }));
+    }
+
+    return json({ ok: true, leadId: lead.id, eventId }, 201);
   } catch (error) {
     console.error("lead_insert_failed", error);
     return json({ ok: false, error: "storage_failed" }, 500);

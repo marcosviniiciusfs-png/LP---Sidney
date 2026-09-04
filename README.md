@@ -10,7 +10,7 @@ Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Col
 - Logo oficial do Dr. Sidney aplicada no cabeçalho, formulário, apresentação profissional e rodapé.
 - CTA final com formulário acessível em quatro etapas e atalho para WhatsApp.
 - Registro do lead em Cloudflare D1 antes do encaminhamento ao WhatsApp.
-- Pixel da Meta com consentimento prévio, evento `PageView` e evento `Lead` após a gravação no D1.
+- Pixel da Meta e API de Conversões com consentimento prévio. O evento `Lead` usa o mesmo `event_id` no navegador e no servidor para deduplicação.
 - Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.
 - Eventos no `dataLayer`, sem nome, telefone ou e-mail: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
 - Política de privacidade em formato de minuta.
@@ -57,6 +57,8 @@ window.LP_CONFIG = {
 Depois da validação, o formulário envia o lead para a função `/api/leads`, que grava os dados no Cloudflare D1. Somente após a confirmação do banco a página abre a conversa no WhatsApp. Dessa forma, o contato permanece registrado mesmo quando a mensagem não é enviada no aplicativo.
 
 O banco usa o binding `LEADS_DB`, configurado em `wrangler.jsonc`. O esquema fica em `migrations/0001_create_leads.sql`.
+
+A credencial da API de Conversões é armazenada no Cloudflare Pages como o segredo `META_CAPI_ACCESS_TOKEN`; ela nunca deve ser incluída no repositório. A função envia e-mail, telefone e nome normalizados com SHA-256, além de IP, user agent, `_fbp` e `_fbc` quando disponíveis. O resultado do envio fica registrado em `meta_capi_status` sem bloquear o atendimento ou a abertura do WhatsApp.
 
 ## Arquivos principais
 

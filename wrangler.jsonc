@@ -3,6 +3,10 @@
   "name": "dr-sidney-colares",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-09-03",
+  "vars": {
+    "META_PIXEL_ID": "2258593511572731",
+    "META_GRAPH_API_VERSION": "v25.0"
+  },
   "d1_databases": [
     {
       "binding": "LEADS_DB",
