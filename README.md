@@ -60,6 +60,8 @@ O banco usa o binding `LEADS_DB`, configurado em `wrangler.jsonc`. O esquema fic
 
 A credencial da API de Conversões é armazenada no Cloudflare Pages como o segredo `META_CAPI_ACCESS_TOKEN`; ela nunca deve ser incluída no repositório. A função envia e-mail, telefone e nome normalizados com SHA-256, além de IP, user agent, `_fbp` e `_fbc` quando disponíveis. O resultado do envio fica registrado em `meta_capi_status` sem bloquear o atendimento ou a abertura do WhatsApp.
 
+O envio em tempo real para a planilha usa o segredo `LEAD_DESTINATION_WEBHOOK_URL`. Depois de gravar o lead no D1, a função envia uma cópia ao webhook e registra o resultado em `sheet_sync_status`. Falhas na planilha não apagam o lead nem interrompem o encaminhamento ao WhatsApp.
+
 ## Arquivos principais
 
 - `index.html`: conteúdo semântico, seções, formulário e metadados.

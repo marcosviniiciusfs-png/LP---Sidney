@@ -72,6 +72,40 @@ const finishMetaDelivery = async (args) => {
   }
 };
 
+const sendLeadToSpreadsheet = async ({ env, lead }) => {
+  if (!env.LEAD_DESTINATION_WEBHOOK_URL) return;
+  let status = "sent";
+  try {
+    const response = await fetch(env.LEAD_DESTINATION_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        created_at: lead.receivedAt,
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email,
+        interest: lead.interest,
+        utm_source: lead.utmSource,
+        utm_medium: lead.utmMedium,
+        utm_campaign: lead.utmCampaign,
+        utm_content: lead.utmContent,
+        utm_term: lead.utmTerm,
+        source_url: lead.sourceUrl,
+        lead_id: lead.id,
+      }),
+    });
+    if (!response.ok) throw new Error(`lead_webhook_http_${response.status}`);
+  } catch (error) {
+    status = "failed";
+    console.error("lead_webhook_delivery_failed", error instanceof Error ? error.message : "unknown_error");
+  }
+  try {
+    await env.LEADS_DB.prepare("UPDATE leads SET sheet_sync_status = ? WHERE id = ?").bind(status, lead.id).run();
+  } catch {
+    console.error("sheet_sync_status_update_failed");
+  }
+};
+
 export const onRequestPost = async ({ request, env, waitUntil }) => {
   if (!request.headers.get("content-type")?.includes("application/json")) {
     return json({ ok: false, error: "invalid_content_type" }, 415);
@@ -101,6 +135,7 @@ export const onRequestPost = async ({ request, env, waitUntil }) => {
     utmTerm: clean(body.utm_term, 200),
     sourceUrl: clean(body.source_url, 500),
     metaConsent: body.meta_consent === true,
+    receivedAt: new Date().toISOString(),
   };
   const eventId = `lead_${lead.id}`;
 
@@ -116,8 +151,8 @@ export const onRequestPost = async ({ request, env, waitUntil }) => {
       `INSERT INTO leads (
         id, name, phone, email, interest, privacy_consent,
         utm_source, utm_medium, utm_campaign, utm_content, utm_term, source_url,
-        meta_event_id, meta_consent, meta_capi_status
-      ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        meta_event_id, meta_consent, meta_capi_status, sheet_sync_status
+      ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         lead.id,
@@ -134,11 +169,15 @@ export const onRequestPost = async ({ request, env, waitUntil }) => {
         eventId,
         lead.metaConsent ? 1 : 0,
         lead.metaConsent ? "pending" : "skipped",
+        env.LEAD_DESTINATION_WEBHOOK_URL ? "pending" : "not_configured",
       )
       .run();
 
     if (lead.metaConsent) {
       waitUntil(finishMetaDelivery({ env, request, lead, eventId, fbp: body.fbp, fbc: body.fbc }));
+    }
+    if (env.LEAD_DESTINATION_WEBHOOK_URL) {
+      waitUntil(sendLeadToSpreadsheet({ env, lead }));
     }
 
     return json({ ok: true, leadId: lead.id, eventId }, 201);
