@@ -28,9 +28,9 @@ const sendMetaLead = async ({ env, request, lead, eventId, fbp, fbc }) => {
   const firstName = nameParts.shift() || "";
   const lastName = nameParts.join(" ");
   const userData = {
-    em: [await sha256(normalize(lead.email))],
     ph: [await sha256(normalizePhone(lead.phone))],
     fn: [await sha256(firstName)],
+    ct: [await sha256(normalize(lead.city))],
     client_ip_address: request.headers.get("CF-Connecting-IP") || undefined,
     client_user_agent: request.headers.get("User-Agent") || undefined,
     fbp: clean(fbp, 255) || undefined,
@@ -83,14 +83,9 @@ const sendLeadToSpreadsheet = async ({ env, lead }) => {
         created_at: lead.receivedAt,
         name: lead.name,
         phone: lead.phone,
-        email: lead.email,
+        city: lead.city,
         interest: lead.interest,
         utm_source: lead.utmSource,
-        utm_medium: lead.utmMedium,
-        utm_campaign: lead.utmCampaign,
-        utm_content: lead.utmContent,
-        utm_term: lead.utmTerm,
-        source_url: lead.sourceUrl,
         lead_id: lead.id,
       }),
     });
@@ -125,7 +120,7 @@ export const onRequestPost = async ({ request, env, waitUntil }) => {
     id: crypto.randomUUID(),
     name: clean(body.name, 120),
     phone: clean(body.phone, 30),
-    email: clean(body.email, 254).toLowerCase(),
+    city: clean(body.city, 120),
     interest: clean(body.interest, 160),
     privacyConsent: body.privacy_consent === true,
     utmSource: clean(body.utm_source, 200),
@@ -140,25 +135,23 @@ export const onRequestPost = async ({ request, env, waitUntil }) => {
   const eventId = `lead_${lead.id}`;
 
   const phoneDigits = lead.phone.replace(/\D/g, "");
-  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email);
-
-  if (lead.name.length < 2 || phoneDigits.length < 10 || !emailIsValid || !lead.interest || !lead.privacyConsent) {
+  if (lead.name.length < 2 || phoneDigits.length < 10 || lead.city.length < 2 || !lead.interest || !lead.privacyConsent) {
     return json({ ok: false, error: "invalid_lead" }, 422);
   }
 
   try {
     await env.LEADS_DB.prepare(
       `INSERT INTO leads (
-        id, name, phone, email, interest, privacy_consent,
+        id, name, phone, email, city, interest, privacy_consent,
         utm_source, utm_medium, utm_campaign, utm_content, utm_term, source_url,
         meta_event_id, meta_consent, meta_capi_status, sheet_sync_status
-      ) VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, '', ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         lead.id,
         lead.name,
         lead.phone,
-        lead.email,
+        lead.city,
         lead.interest,
         lead.utmSource || null,
         lead.utmMedium || null,

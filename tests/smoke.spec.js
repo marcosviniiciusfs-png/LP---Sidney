@@ -49,7 +49,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   await page.locator(".form-next").click();
   await page.locator("#lead-phone").fill("94991360408");
   await page.locator(".form-next").click();
-  await page.locator("#lead-email").fill("paciente@example.com");
+  await page.locator("#lead-city").fill("Marabá");
   await page.locator(".form-next").click();
 
   await expect(page.locator("[name='utm_source']")).toHaveValue("ig");
@@ -65,7 +65,7 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   await expect.poll(() => storedLead?.name).toBe("Paciente Teste");
   expect(storedLead).toMatchObject({
     phone: "(94) 99136-0408",
-    email: "paciente@example.com",
+    city: "Marabá",
     interest: "Quero agendar uma avaliação de rinoplastia",
     privacy_consent: true,
     utm_source: "ig",
@@ -97,7 +97,7 @@ test("does not open WhatsApp when lead storage fails", async ({ page }) => {
   await page.locator(".form-next").click();
   await page.locator("#lead-phone").fill("94991360408");
   await page.locator(".form-next").click();
-  await page.locator("#lead-email").fill("paciente@example.com");
+  await page.locator("#lead-city").fill("Marabá");
   await page.locator(".form-next").click();
   await page.getByLabel("Quero tirar dúvidas sobre rinoplastia").check();
   await page.locator("[name='privacy_consent']").check();

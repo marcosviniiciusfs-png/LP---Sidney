@@ -199,7 +199,7 @@
     const step = steps[currentStep - 1];
     const name = form.elements.namedItem("name");
     const phone = form.elements.namedItem("phone");
-    const email = form.elements.namedItem("email");
+    const city = form.elements.namedItem("city");
     const interest = form.querySelector("input[name='interest']:checked");
     const consent = form.elements.namedItem("privacy_consent");
 
@@ -214,8 +214,8 @@
     }
 
     if (currentStep === 3) {
-      clearError(email);
-      if (!email.validity.valid) return setError(email, "Digite um e-mail válido.", step.querySelector(".field-error"));
+      clearError(city);
+      if (city.value.trim().length < 2) return setError(city, "Informe sua cidade.", step.querySelector(".field-error"));
     }
 
     if (currentStep === 4) {
@@ -320,7 +320,7 @@
       "",
       `Nome: ${values.name}`,
       `WhatsApp informado: ${values.phone}`,
-      `E-mail: ${values.email}`,
+      `Cidade: ${values.city}`,
       `Interesse: ${values.interest}`,
       attribution ? `Origem: ${attribution}` : "",
     ]

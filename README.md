@@ -12,7 +12,7 @@ Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Col
 - Registro do lead em Cloudflare D1 antes do encaminhamento ao WhatsApp.
 - Pixel da Meta carregado imediatamente em todas as visitas e API de Conversões no envio do formulário. O evento `Lead` usa o mesmo `event_id` no navegador e no servidor para deduplicação.
 - Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.
-- Eventos no `dataLayer`, sem nome, telefone ou e-mail: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
+- Eventos no `dataLayer`, sem nome, telefone ou cidade: `view_landing_page`, `click_schedule_cta`, `open_lead_form`, `form_step_complete`, `generate_lead`, `lead_handoff_whatsapp`, `click_whatsapp`, eventos de vídeo e carrossel.
 - Política de privacidade em formato de minuta.
 - Layout sem overflow validado em 360, 390, 768, 1024 e 1440 px.
 
@@ -58,7 +58,7 @@ Depois da validação, o formulário envia o lead para a função `/api/leads`, 
 
 O banco usa o binding `LEADS_DB`, configurado em `wrangler.jsonc`. O esquema fica em `migrations/0001_create_leads.sql`.
 
-A credencial da API de Conversões é armazenada no Cloudflare Pages como o segredo `META_CAPI_ACCESS_TOKEN`; ela nunca deve ser incluída no repositório. A função envia e-mail, telefone e nome normalizados com SHA-256, além de IP, user agent, `_fbp` e `_fbc` quando disponíveis. O resultado do envio fica registrado em `meta_capi_status` sem bloquear o atendimento ou a abertura do WhatsApp.
+A credencial da API de Conversões é armazenada no Cloudflare Pages como o segredo `META_CAPI_ACCESS_TOKEN`; ela nunca deve ser incluída no repositório. A função envia telefone, nome e cidade normalizados com SHA-256, além de IP, user agent, `_fbp` e `_fbc` quando disponíveis. O resultado do envio fica registrado em `meta_capi_status` sem bloquear o atendimento ou a abertura do WhatsApp.
 
 O envio em tempo real para a planilha usa o segredo `LEAD_DESTINATION_WEBHOOK_URL`. Depois de gravar o lead no D1, a função envia uma cópia ao webhook e registra o resultado em `sheet_sync_status`. Falhas na planilha não apagam o lead nem interrompem o encaminhamento ao WhatsApp.
 
