@@ -227,9 +227,14 @@ p {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
   color: var(--text);
   text-decoration: none;
+}
+
+.brand__logo {
+  display: block;
+  width: clamp(172px, 15vw, 220px);
+  height: auto;
 }
 
 .brand__monogram {
@@ -948,6 +953,15 @@ p {
   text-indent: -0.1em;
 }
 
+.doctor__portrait-placeholder .doctor__logo {
+  position: relative;
+  z-index: 1;
+  width: 82%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
 .doctor__portrait-placeholder i {
   position: relative;
   z-index: 1;
@@ -1539,6 +1553,10 @@ p {
     top: max(18px, env(safe-area-inset-top));
   }
 
+  .brand__logo {
+    width: 168px;
+  }
+
   .hero__contact {
     display: none;
   }
@@ -1766,6 +1784,10 @@ p {
 
   .lead-modal__brand {
     margin-bottom: 28px;
+  }
+
+  .lead-modal__brand .brand__logo {
+    width: 154px;
   }
 
   .lead-modal h2 {

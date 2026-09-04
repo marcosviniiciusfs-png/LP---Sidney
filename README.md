@@ -7,6 +7,7 @@ Landing page de rinoplastia estática e responsiva, criada para o Dr. Sidney Col
 - Hero em vídeo com autoridade, CTA e controle acessível de pausa.
 - Carrossel contínuo com seis casos e alternativa manual no mobile.
 - Depoimento em vídeo, bloco de experiência, biografia, credenciais e tecnologia.
+- Logo oficial do Dr. Sidney aplicada no cabeçalho, formulário, apresentação profissional e rodapé.
 - CTA final com formulário acessível em quatro etapas e atalho para WhatsApp.
 - Registro do lead em Cloudflare D1 antes do encaminhamento ao WhatsApp.
 - Captura de `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` e `utm_term`.

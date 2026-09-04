@@ -7,7 +7,7 @@ Este arquivo separa o que já funciona tecnicamente do que ainda depende de conf
 - Confirmar por certidão os registros exibidos: `CRO-MG 64394`, `CRO-PA 4271` e `CRO-TO 4432`. O número do Pará aparece de forma divergente em fontes públicas; a versão atual usa `4271`, presente no perfil profissional e nas publicações oficiais.
 - Confirmar a forma aprovada de apresentação da especialidade. A versão atual usa “cirurgião-dentista e traumatologista bucomaxilofacial”, sem apresentá-lo como médico, cirurgião plástico ou otorrinolaringologista.
 - Confirmar o WhatsApp principal `+55 94 99136-0408`.
-- Fornecer logotipo oficial em SVG e retrato original aprovado. Enquanto isso, o bloco “Sobre” usa um monograma provisório `SC`.
+- A logo oficial em PNG foi fornecida e aplicada. Solicitar também o arquivo vetorial original para futuras ampliações e fornecer um retrato aprovado do profissional; enquanto não houver retrato, o bloco “Sobre” exibe a marca oficial.
 
 Consultas públicas recomendadas: [busca de profissionais do CFO](https://busca-profissionais.cfo.org.br/) e [consulta de inscritos do CRO-PA](https://cro-pa.implanta.net.br/ServicosOnline/Publico/ConsultaInscritos).
 
@@ -29,7 +29,7 @@ Referências oficiais: [Resolução CFO 196/2019](https://website.cfo.org.br/res
 | Resultados | `case-01.jpg` a `case-06.jpg` | Conteúdos do perfil oficial; trocar pelos arquivos originais e conferir TCLE de todos os pacientes. |
 | Depoimento | `testimonial-alt.mp4` — reel `DIes9UYzdmt` | Alternativa oficial usada porque o link principal do blueprint (`DKkqlLqJqKZ`) pertence a outro profissional e a outro procedimento. Solicitar original e autorização. |
 | Experiência | `case-video-alt.mp4` — reel `DYnUXw-JxbD` | Alternativa oficial usada porque `DbolLh6JUIj` não pôde ser validado. Solicitar original e revisar conteúdo clínico. |
-| Retrato | Monograma provisório | O link `DbrNFcgAOsF` não pertence ao perfil oficial informado. Fornecer fotografia original aprovada. |
+| Retrato | Logo oficial como solução temporária | O link `DbrNFcgAOsF` não pertence ao perfil oficial informado. Fornecer fotografia original aprovada. |
 | Tecnologia | Reuso de `hero.mp4` | O reel `DWZDOWjjVLV` não ficou disponível para validação. Fornecer o vídeo original específico de tecnologia. |
 
 Nenhum ativo do site do Dr. Jaziel foi incorporado à implementação.
