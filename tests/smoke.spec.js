@@ -56,8 +56,11 @@ test("opens, validates and advances the accessible lead form", async ({ page }) 
   await expect(page.locator("[name='utm_campaign']")).toHaveValue("smoke");
   await page.getByLabel("Quero agendar uma avaliação de rinoplastia").check();
   await page.locator("[name='privacy_consent']").check();
-  const submit = page.getByRole("button", { name: "Continuar no WhatsApp" });
+  const submit = page.locator(".form-submit");
   await expect(submit).toBeVisible();
+  await expect(submit).toHaveText(/Continuar/);
+  expect(await submit.textContent()).not.toContain("WhatsApp");
+  expect(storedLead).toBeUndefined();
   await submit.click();
   await expect.poll(() => storedLead?.name).toBe("Paciente Teste");
   expect(storedLead).toMatchObject({
