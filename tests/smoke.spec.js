@@ -104,19 +104,12 @@ test("does not open WhatsApp when lead storage fails", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.__openedWhatsAppUrl || "")).toBe("");
 });
 
-test("loads Meta Pixel only after advertising consent", async ({ page }) => {
+test("loads Meta Pixel and PageView immediately", async ({ page }) => {
   await page.route("https://connect.facebook.net/**", (route) => route.fulfill({ status: 200, contentType: "application/javascript", body: "" }));
   await page.goto("/");
 
-  const banner = page.locator("#cookie-consent");
-  await expect(banner).toBeVisible();
-  await expect(page.locator('script[src*="connect.facebook.net"]')).toHaveCount(0);
-
-  await page.getByRole("button", { name: "Aceitar" }).click();
-
-  await expect(banner).toBeHidden();
+  await expect(page.locator("#cookie-consent")).toHaveCount(0);
   await expect(page.locator('script[src="https://connect.facebook.net/en_US/fbevents.js"]')).toHaveCount(1);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("meta_ads_consent_v1"))).toBe("accepted");
   await expect.poll(() =>
     page.evaluate(() => window.fbq?.queue?.some((args) => args[0] === "init" && args[1] === "2258593511572731")),
   ).toBe(true);

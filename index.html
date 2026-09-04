@@ -24,10 +24,22 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <script>document.documentElement.classList.add("js")</script>
+    <!-- Meta Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '2258593511572731');
+      fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code -->
     <script src="config.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=2258593511572731&amp;ev=PageView&amp;noscript=1" alt="" /></noscript>
     <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
     <main id="conteudo">
@@ -304,18 +316,6 @@
         </nav>
       </div>
     </footer>
-
-    <aside class="cookie-consent" id="cookie-consent" aria-labelledby="cookie-consent-title" hidden>
-      <div class="cookie-consent__copy">
-        <strong id="cookie-consent-title">Cookies de publicidade</strong>
-        <p>Usamos o Pixel da Meta para medir campanhas e entender ações realizadas nesta página. Você pode aceitar ou recusar.</p>
-        <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Ver Política de Privacidade</a>
-      </div>
-      <div class="cookie-consent__actions">
-        <button class="button button--secondary js-reject-cookies" type="button">Recusar</button>
-        <button class="button button--primary js-accept-cookies" type="button">Aceitar</button>
-      </div>
-    </aside>
 
     <dialog class="lead-modal" id="lead-modal" aria-labelledby="form-title">
       <div class="lead-modal__panel">

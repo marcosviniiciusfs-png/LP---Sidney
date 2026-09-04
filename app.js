@@ -3,8 +3,6 @@
 
   const config = window.LP_CONFIG || {};
   const dataLayer = (window.dataLayer = window.dataLayer || []);
-  const metaPixelId = String(config.metaPixelId || "").replace(/\D/g, "");
-  const metaConsentKey = "meta_ads_consent_v1";
 
   const track = (event, parameters = {}) => {
     dataLayer.push({ event, ...parameters });
@@ -22,47 +20,6 @@
   installGtm();
   track("view_landing_page");
 
-  const loadMetaPixel = () => {
-    if (!metaPixelId || window.fbq) return;
-
-    const fbq = (window.fbq = function () {
-      if (fbq.callMethod) fbq.callMethod.apply(fbq, arguments);
-      else fbq.queue.push(arguments);
-    });
-    if (!window._fbq) window._fbq = fbq;
-    fbq.push = fbq;
-    fbq.loaded = true;
-    fbq.version = "2.0";
-    fbq.queue = [];
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = "https://connect.facebook.net/en_US/fbevents.js";
-    document.head.append(script);
-
-    fbq("init", metaPixelId);
-    fbq("track", "PageView");
-    track("meta_pixel_loaded", { consent: "accepted" });
-  };
-
-  const consentBanner = document.querySelector("#cookie-consent");
-  const acceptCookies = consentBanner?.querySelector(".js-accept-cookies");
-  const rejectCookies = consentBanner?.querySelector(".js-reject-cookies");
-
-  const readMetaConsent = () => {
-    try {
-      return window.localStorage.getItem(metaConsentKey);
-    } catch {
-      return null;
-    }
-  };
-
-  const saveMetaConsent = (value) => {
-    try {
-      window.localStorage.setItem(metaConsentKey, value);
-    } catch {}
-  };
-
   const readCookie = (name) => {
     const prefix = `${name}=`;
     const item = document.cookie.split("; ").find((cookie) => cookie.startsWith(prefix));
@@ -75,22 +32,6 @@
     const fbclid = new URLSearchParams(window.location.search).get("fbclid");
     return fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : "";
   };
-
-  const savedMetaConsent = readMetaConsent();
-  if (savedMetaConsent === "accepted") loadMetaPixel();
-  else if (!savedMetaConsent && consentBanner) consentBanner.hidden = false;
-
-  acceptCookies?.addEventListener("click", () => {
-    saveMetaConsent("accepted");
-    loadMetaPixel();
-    consentBanner.hidden = true;
-  });
-
-  rejectCookies?.addEventListener("click", () => {
-    saveMetaConsent("rejected");
-    consentBanner.hidden = true;
-    track("meta_consent_rejected");
-  });
 
   const whatsappNumber = String(config.whatsappNumber || "5594991360408").replace(/\D/g, "");
   document.querySelectorAll(".js-whatsapp").forEach((link) => {
@@ -393,7 +334,7 @@
         body: JSON.stringify({
           ...values,
           privacy_consent: values.privacy_consent === "on",
-          meta_consent: readMetaConsent() === "accepted",
+          meta_consent: true,
           fbp: readCookie("_fbp"),
           fbc: getFbc(),
           source_url: window.location.href,
